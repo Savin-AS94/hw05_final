@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load cache %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+  {% include 'posts/includes/switcher.html' %}
+  <h1>{{ header}}</h1>
+  {% cache 20 index_page with page_obj %}
+  {% for post in page_obj %}  
+    {% include 'includes/post.html' with link_group='True' %}
+  {% endfor %}
+  {% endcache %}
+  {% include 'posts/includes/paginator.html' %}
+{% endblock %}
