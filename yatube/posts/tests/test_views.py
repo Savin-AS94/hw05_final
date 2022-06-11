@@ -153,12 +153,20 @@ class PostPagesTests(TestCase):
 
     def test_cache_index(self):
         """Тестирование работы кеша"""
-        response_1 = self.authorized_client.get(reverse('posts:index'))
+        response_before_change = self.authorized_client.get(
+            reverse('posts:index')
+        )
         post = Post.objects.first()
         post.text = 'wtf'
         post.save()
-        response_2 = self.authorized_client.get(reverse('posts:index'))
-        self.assertEqual(response_1.content, response_2.content)
+        response_after_change = self.authorized_client.get(
+            reverse('posts:index')
+        )
+        self.assertEqual(response_before_change.content,
+                         response_after_change.content)
         cache.clear()
-        response_3 = self.authorized_client.get(reverse('posts:index'))
-        self.assertNotEqual(response_1.content, response_3.content)
+        response_after_clear = self.authorized_client.get(
+            reverse('posts:index')
+        )
+        self.assertNotEqual(response_before_change.content,
+                            response_after_clear.content)

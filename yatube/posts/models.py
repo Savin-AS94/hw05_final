@@ -69,7 +69,10 @@ class Comment(models.Model):
     created = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return self.text[:settings.POST_STR]
+        return self.text[:settings.COMMENT_STR]
+
+    class Meta:
+        ordering: Tuple[str] = ('-created',)
 
 
 class Follow(models.Model):
@@ -88,3 +91,10 @@ class Follow(models.Model):
 
     def __str__(self):
         return f'Подписка {self.user} на {self.author}'
+
+    class Meta:
+        constraints = [models.UniqueConstraint(
+            fields=["author", "user"], name="unique_following"),
+            models.CheckConstraint(check=~models.Q(user=models.F("author")),
+                                   name="check_following"),
+        ]

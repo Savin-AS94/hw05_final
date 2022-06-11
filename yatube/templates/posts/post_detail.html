@@ -39,10 +39,10 @@
           </p>
           <br>
           {% if request.user == post.author %}
-            <a class="btn btn-primary" href="{% url 'posts:update_post' post.pk %}">
+            <a class="btn btn-sm btn-primary" href="{% url 'posts:update_post' post.pk %}" role='button'>
               Редактировать запись
             </a>
-            <a class="btn btn-danger" href="{% url 'posts:post_delete' post.id %}">
+            <a class="btn btn-sm btn-danger" href="{% url 'posts:post_delete' post.id %}" role ='button'>
               Удалить запись
             </a>
           {% endif %}

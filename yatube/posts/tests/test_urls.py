@@ -105,6 +105,7 @@ class PostURLTests(TestCase):
                 self.assertEqual(response.status_code, status)
 
     def test_unexisting_template(self):
+        """Тест шаблона несуществующей страницы"""
         response = self.guest_client.get('/unsexisting/')
         self.assertTemplateUsed(response, 'core/404.html')
 

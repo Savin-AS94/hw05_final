@@ -37,6 +37,8 @@ ALLOWED_HOSTS = [
 POST_LIM = 10
 
 POST_STR = 15
+
+COMMENT_STR = 15
 # Application definition
 
 INSTALLED_APPS = [

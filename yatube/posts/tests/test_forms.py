@@ -89,7 +89,7 @@ class PostFormTests(TestCase):
             b'\x02\x00\x01\x00\x00\x02\x02\x0C'
             b'\x0A\x00\x3B'
         )
-        uploaded_2 = SimpleUploadedFile(
+        uploaded_big_gif = SimpleUploadedFile(
             name='big.gif',
             content=big_gif,
             content_type='image/gif'
@@ -97,7 +97,7 @@ class PostFormTests(TestCase):
         form_data = {
             'text': 'another_post2',
             'group': self.group.id,
-            'image': uploaded_2,
+            'image': uploaded_big_gif,
         }
         response = self.authorized_client.post(
             reverse('posts:update_post', kwargs={'post_id': self.post.id}),
