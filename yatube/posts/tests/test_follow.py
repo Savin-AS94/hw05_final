@@ -43,7 +43,8 @@ class FollowViewsTests(TestCase):
         # Редирект при подписке
         response_follow = self.authorized_client.get(
             reverse('posts:profile_follow',
-                    kwargs={'username': self.user_follow.username})
+                    kwargs={'username': self.user_follow.username},
+                    ), follow=True
         )
         self.assertRedirects(
             response_follow,
@@ -55,11 +56,20 @@ class FollowViewsTests(TestCase):
             user=self.user,
             author=self.user_follow,
         ).exists())
-        # Пост появился на странице follow_index
-        response_index_follow = self.authorized_client.get(
-            reverse('posts:follow_index')
+
+    def test_user_can_follow_author_once(self):
+        """На автора можно подписаться только один раз"""
+        Follow.objects.create(
+            user=self.user,
+            author=self.user_follow,
         )
-        self.assertIn(self.post, response_index_follow.context['page_obj'])
+        follow_count = Follow.objects.count()
+        self.authorized_client.get(
+            reverse('posts:profile_follow',
+                    kwargs={'username': self.user_follow.username},
+                    )
+        )
+        self.assertEqual(Follow.objects.count(), follow_count)
 
     def test_user_can_unfollow_author(self):
         """Тестирование отписки от автора"""
@@ -74,11 +84,6 @@ class FollowViewsTests(TestCase):
                 kwargs={'username': self.user_follow.username}
             )
         )
-        response_unfollow = self.authorized_client.get(
-            reverse('posts:follow_index')
-        )
-        # Пост пропал со страницы
-        self.assertNotIn(self.post, response_unfollow.context['page_obj'])
         # Количество подписок не изменилось
         self.assertEqual(follow_count, Follow.objects.count())
         # Подписка как объект удалена

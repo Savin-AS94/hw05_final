@@ -9,7 +9,7 @@ from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 
 from ..forms import CommentForm, PostForm
-from ..models import Comment, Group, Post
+from ..models import Comment, Follow, Group, Post
 
 TEMP_MEDIA_ROOT = tempfile.mkdtemp(dir=settings.BASE_DIR)
 
@@ -22,6 +22,7 @@ class PostPagesTests(TestCase):
     def setUpClass(cls):
         super().setUpClass()
         cls.user = User.objects.create_user(username='auth')
+        cls.user_follow = User.objects.create_user(username='follow')
         cls.group = Group.objects.create(
             title='Тестовая группа',
             slug='test',
@@ -46,7 +47,7 @@ class PostPagesTests(TestCase):
             content_type='image/gif'
         )
         cls.post = Post.objects.create(
-            author=cls.user,
+            author=cls.user_follow,
             group=cls.group,
             text='Тестовая пост',
             image=cls.uploaded
@@ -86,13 +87,14 @@ class PostPagesTests(TestCase):
     def test_profile_pages_show_correct_context(self):
         """Шаблон profile сформирован с правильным контекстом."""
         response = (self.guest_client.get(reverse('posts:profile',
-                    kwargs={'username': self.user.username})))
-        self.assertEqual(response.context.get('author'), self.user)
+                    kwargs={'username': self.user_follow.username})))
+        self.assertEqual(response.context.get('author'), self.user_follow)
         self.assertEqual(response.context.get('post_count'),
                          Post.objects.count())
 
     def test_create_update_post_pages_show_correct_context(self):
         """Шаблоны create и update сформированы с правильным контекстом."""
+        self.authorized_client.force_login(self.user_follow)
         reverse_names = (
             reverse('posts:post_create'),
             reverse(
@@ -109,24 +111,33 @@ class PostPagesTests(TestCase):
             reverse('posts:update_post', kwargs={'post_id': self.post.id})
         ).context.get('form').instance.id, self.post.id)
 
-    def test_post_no_group(self):
-        """Пост не попадает в ненужную группу"""
+    def test_post_no_group_no_follow(self):
+        """Пост не попадает в ненужную группу и отсутствует в подписках"""
         response = self.authorized_client.get(
             reverse('posts:group_list',
                     kwargs={'slug': self.other_group.slug}))
         self.assertNotIn(self.post, response.context['page_obj'])
+        response_follow = self.authorized_client.get(
+            reverse('posts:follow_index')
+        )
+        self.assertNotIn(self.post, response_follow.context['page_obj'])
 
     def test_post_on_pages(self):
         """Пост отображается на страницах"""
+        Follow.objects.create(
+            user=self.user,
+            author=self.user_follow,
+        )
         reverse_names = (
             reverse('posts:index'),
-            reverse('posts:group_list', kwargs={'slug': self.group.slug}),
+            reverse('posts:group_list', kwargs={'slug': self.post.group.slug}),
             reverse('posts:profile',
-                    kwargs={'username': self.user.username}),
+                    kwargs={'username': self.user_follow.username}),
+            reverse('posts:follow_index'),
         )
         for reverse_name in reverse_names:
             with self.subTest():
-                response = self.guest_client.get(reverse_name)
+                response = self.authorized_client.get(reverse_name)
                 self.assertIn(self.post,
                               response.context['page_obj'])
 
