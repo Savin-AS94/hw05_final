@@ -39,14 +39,13 @@ def profile(request, username):
     author = get_object_or_404(User, username=username)
     posts = author.posts.select_related('group')
     templates = 'posts/profile.html'
+    page_obj = pagination(request.GET.get('page'), posts)
     following = (request.user.is_authenticated
                  and author.following.filter(user=request.user).exists())
     context = {
         'author': author,
-        'page_obj': pagination(request.GET.get('page'), posts),
-        'post_count': pagination(
-            request.GET.get('page'), posts
-        ).paginator.count,
+        'page_obj': page_obj,
+        'post_count': page_obj.paginator.count,
         'following': following,
     }
     return render(request, templates, context)

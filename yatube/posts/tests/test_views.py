@@ -111,12 +111,15 @@ class PostPagesTests(TestCase):
             reverse('posts:update_post', kwargs={'post_id': self.post.id})
         ).context.get('form').instance.id, self.post.id)
 
-    def test_post_no_group_no_follow(self):
-        """Пост не попадает в ненужную группу и отсутствует в подписках"""
+    def test_post_no_group(self):
+        """Пост не попадает в ненужную группу"""
         response = self.authorized_client.get(
             reverse('posts:group_list',
                     kwargs={'slug': self.other_group.slug}))
         self.assertNotIn(self.post, response.context['page_obj'])
+
+    def test_post_no_follow(self):
+        """Пост отсутствует в подписках"""
         response_follow = self.authorized_client.get(
             reverse('posts:follow_index')
         )

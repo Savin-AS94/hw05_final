@@ -32,20 +32,15 @@ class FollowViewsTests(TestCase):
     def test_user_can_follow_author(self):
         """Тестирование подписки на автора"""
         follow_count = Follow.objects.count()
-        self.authorized_client.get(
+        response_follow = self.authorized_client.get(
             reverse(
                 'posts:profile_follow',
                 kwargs={'username': self.user_follow.username}
-            )
+            ), follow=True
         )
-        follow_count_after = Follow.objects.count()
-        self.assertEqual(follow_count + 1, follow_count_after)
+        # Количество подписок увеличилось
+        self.assertEqual(follow_count + 1, Follow.objects.count())
         # Редирект при подписке
-        response_follow = self.authorized_client.get(
-            reverse('posts:profile_follow',
-                    kwargs={'username': self.user_follow.username},
-                    ), follow=True
-        )
         self.assertRedirects(
             response_follow,
             reverse('posts:profile',
